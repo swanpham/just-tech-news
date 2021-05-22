@@ -1,4 +1,5 @@
 const User = require('./User');
+
 const Post = require("./Post");
 
 // create associations
@@ -11,3 +12,7 @@ Post.belongsTo(User, {
 });
 
 module.exports = { User, Post };
+
+
+
+
