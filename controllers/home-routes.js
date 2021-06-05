@@ -4,8 +4,28 @@ const { Post, User, Comment, Vote } = require('../models');
 
 // get all posts for homepage
 router.get('/', (req, res) => {
-  console.log('======================');
-  Post.findAll({
+  console.log(req.session);
+  
+  res.render('homepage', {
+    posts,
+    loggedIn: req.session.loggedIn
+  });
+});
+
+router.get('/login', (req, res) => {
+  if (req.session.loggedIn) {
+    res.redirect('/');
+    return;
+  }
+
+  res.render('login');
+});
+
+router.get('/post/:id', (req, res) => {
+  Post.findOne({
+    where: {
+      id: req.params.id
+    },
     attributes: [
       'id',
       'post_url',
@@ -28,24 +48,25 @@ router.get('/', (req, res) => {
       }
     ]
   })
-    .then(dbPostData => {
-      const posts = dbPostData.map(post => post.get({ plain: true }));
+  .then(dbPostData => {
+    if (!dbPostData) {
+      res.status(404).json({ message: 'No post found with this id' });
+      return;
+    }
 
-      res.render('homepage', { posts });
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json(err);
+    // serialize the data
+    const post = dbPostData.get({ plain: true });
+
+    // pass data to template
+    res.render('single-post', {
+      post,
+      loggedIn: req.session.loggedIn
     });
-});
-
-router.get('/login', (req, res) => {
-  if (req.session.loggedIn) {
-    res.redirect('/');
-    return;
-  }
-
-  res.render('login');
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json(err);
+  });
 });
 
 module.exports = router;
